@@ -13,6 +13,14 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p, APVTS& apvts)
     : AudioProcessorEditor (&p), audioProcessor(p), state(apvts)
 {
+    addAndMakeVisible(ioButton);
+    ioAttach.reset(new APVTS::ButtonAttachment(state, "ioID", ioButton));
+    addAndMakeVisible(ioLabel);
+    ioLabel.setText("IO", juce::dontSendNotification);
+    ioLabel.attachToComponent(&ioButton, true);
+    ioLabel.setColour(juce::Label::textColourId, juce::Colours::white);
+    ioLabel.setJustificationType(juce::Justification::right);
+
     addAndMakeVisible(freqSlider);
     freqSlider.TextBoxBelow;
     freqAttach.reset(new APVTS::SliderAttachment(state, "frequencyID", freqSlider));
@@ -75,7 +83,6 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     dryWetLabel.setColour(juce::Label::textColourId, juce::Colours::white);
     dryWetLabel.setJustificationType(juce::Justification::right);
     
-
     addAndMakeVisible(bypassButton);
     bypassAttach.reset(new APVTS::ButtonAttachment(state, "bypassID", bypassButton));
     addAndMakeVisible(bypassLabel);
@@ -95,7 +102,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    setSize (400, 600);
+    setSize (400, 550);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -106,7 +113,7 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (juce::Colours::black);
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
@@ -126,14 +133,16 @@ void AudioPluginAudioProcessorEditor::resized()
     auto width = getWidth();
     auto height = getHeight();
 
-    freqSlider.setBounds(sliderLeft, 50, width - sliderLeft - 150, 20);
-    resSlider.setBounds(sliderLeft, 100, width - sliderLeft - 150, 20);
-    typeBox.setBounds(sliderLeft, 150, width - sliderLeft - 150, 20);
-    osBox.setBounds(sliderLeft, 200, width - sliderLeft - 150, 20);
+    ioButton.setBounds(sliderLeft, 50, width - sliderLeft - 150, 20);
 
-    outputSlider.setBounds(sliderLeft, 250, width - sliderLeft - 150, 20);
-    dryWetSlider.setBounds(sliderLeft, 300, width - sliderLeft - 150, 20);
+    freqSlider.setBounds(sliderLeft, 100, width - sliderLeft - 150, 20);
+    resSlider.setBounds(sliderLeft, 150, width - sliderLeft - 150, 20);
+    typeBox.setBounds(sliderLeft, 200, width - sliderLeft - 150, 20);
+    osBox.setBounds(sliderLeft, 250, width - sliderLeft - 150, 20);
 
-    bypassButton.setBounds(sliderLeft, 350, width - sliderLeft - 150, 20);
-    displayButton.setBounds(sliderLeft, 400, width - sliderLeft - 150, 20);
+    outputSlider.setBounds(sliderLeft, 300, width - sliderLeft - 150, 20);
+    dryWetSlider.setBounds(sliderLeft, 350, width - sliderLeft - 150, 20);
+
+    bypassButton.setBounds(sliderLeft, 400, width - sliderLeft - 150, 20);
+    displayButton.setBounds(sliderLeft, 450, width - sliderLeft - 150, 20);
 }

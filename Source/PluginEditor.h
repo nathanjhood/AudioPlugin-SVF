@@ -33,7 +33,9 @@ private:
     AudioPluginAudioProcessor& audioProcessor;
     APVTS& state;
 
-    
+    juce::ToggleButton ioButton;
+    juce::Label ioLabel;
+    std::unique_ptr<APVTS::ButtonAttachment> ioAttach;
 
     juce::Slider freqSlider;
     juce::Label freqLabel;

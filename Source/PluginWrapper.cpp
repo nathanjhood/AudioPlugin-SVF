@@ -53,6 +53,7 @@ void ProcessWrapper<SampleType>::setOversampling()
         overSamplingFactor = 1 << curOS;
         prevOS = curOS;
         svf.reset(static_cast<SampleType>(0.0));
+        svf.sampleRate = spec.sampleRate * overSamplingFactor;
         mixer.reset();
         output.reset();
     }

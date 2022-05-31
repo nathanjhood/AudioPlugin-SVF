@@ -27,6 +27,7 @@ void StateVariableTPTFilter<SampleType>::setCutoffFrequency(SampleType newCutoff
     jassert(juce::isPositiveAndBelow(newCutoffFrequencyHz, static_cast<SampleType> (sampleRate * 0.5)));
 
     cutoffFrequency = newCutoffFrequencyHz;
+    frq.setTargetValue(cutoffFrequency);
     update();
 }
 
@@ -36,7 +37,33 @@ void StateVariableTPTFilter<SampleType>::setResonance(SampleType newResonance)
     jassert(newResonance > static_cast<SampleType> (0));
 
     resonance = newResonance;
+    res.setTargetValue(resonance);
     update();
+}
+
+//==============================================================================
+template <typename SampleType>
+void StateVariableTPTFilter<SampleType>::setRampDurationSeconds(double newDurationSeconds) noexcept
+{
+    if (rampDurationSeconds != newDurationSeconds)
+    {
+        rampDurationSeconds = newDurationSeconds;
+        reset(static_cast<SampleType>(0.0));
+    }
+}
+
+template <typename SampleType>
+double StateVariableTPTFilter<SampleType>::getRampDurationSeconds() const noexcept
+{
+    return rampDurationSeconds;
+}
+
+template <typename SampleType>
+bool StateVariableTPTFilter<SampleType>::isSmoothing() const noexcept
+{
+    bool compSmoothing = frq.isSmoothing() || res.isSmoothing();
+
+    return compSmoothing;
 }
 
 //==============================================================================
@@ -51,14 +78,14 @@ void StateVariableTPTFilter<SampleType>::prepare(const juce::dsp::ProcessSpec& s
     s1.resize(spec.numChannels);
     s2.resize(spec.numChannels);
 
-    reset();
-    update();
-}
+    minFreq = static_cast <SampleType>(sampleRate) / static_cast <SampleType>(24576.0);
+    maxFreq = static_cast <SampleType>(sampleRate) / static_cast <SampleType>(2.125);
 
-template <typename SampleType>
-void StateVariableTPTFilter<SampleType>::reset()
-{
-    reset(static_cast<SampleType> (0));
+    jassert(static_cast <SampleType>(20.0) >= minFreq && minFreq <= static_cast <SampleType>(20000.0));
+    jassert(static_cast <SampleType>(20.0) <= maxFreq && maxFreq >= static_cast <SampleType>(20000.0));
+
+    reset(static_cast<SampleType>(0.0));
+    update();
 }
 
 template <typename SampleType>
@@ -66,6 +93,9 @@ void StateVariableTPTFilter<SampleType>::reset(SampleType newValue)
 {
     for (auto v : { &s1, &s2 })
         std::fill(v->begin(), v->end(), newValue);
+
+    frq.reset(sampleRate, rampDurationSeconds);
+    res.reset(sampleRate, rampDurationSeconds);
 }
 
 template <typename SampleType>
@@ -80,6 +110,9 @@ void StateVariableTPTFilter<SampleType>::snapToZero() noexcept
 template <typename SampleType>
 SampleType StateVariableTPTFilter<SampleType>::processSample(int channel, SampleType inputValue)
 {
+    jassert(juce::isPositiveAndBelow(channel, s1.size()));
+    jassert(juce::isPositiveAndBelow(channel, s2.size()));
+
     auto& ls1 = s1[(size_t)channel];
     auto& ls2 = s2[(size_t)channel];
 
@@ -106,30 +139,14 @@ SampleType StateVariableTPTFilter<SampleType>::processSample(int channel, Sample
     case Type::N2:          return (yLP + yHP);
     default:                return (yLP);
     }
-
-    /*switch (filterType)
-    {
-    case Type::lowpass:   return yLP;
-    case Type::highpass:  return yHP;
-    case Type::bandpass:  return yBP;
-    case Type::notch:     return (yLP + yHP);
-    case Type::peak:      return (yLP - yHP);
-    case Type::lp:        return (yLP + yBP);
-    case Type::hp:        return (yHP + yBP);
-    case Type::bpN:       return (yBP * R2);
-    case Type::lowpassN:  return (yLP * R2);
-    case Type::highpassN: return (yHP * R2);
-    case Type::allpass:   return (inputValue - ((yBP * R2) + (yBP * R2)));
-    default:              return yLP;
-    }*/
 }
 
 //==============================================================================
 template <typename SampleType>
 void StateVariableTPTFilter<SampleType>::update()
 {
-    g = static_cast<SampleType> (std::tan(juce::MathConstants<double>::pi * cutoffFrequency / sampleRate));
-    R2 = static_cast<SampleType> (1.0 / resonance);
+    g = static_cast<SampleType> (std::tan(juce::MathConstants<double>::pi * frq.getNextValue() / sampleRate));
+    R2 = static_cast<SampleType> (1.0 - (res.getNextValue() * 0.9875)) + (1.0 - (res.getNextValue() * 0.9875));
     h = static_cast<SampleType> (1.0 / (1.0 + R2 * g + g * g));
 }
 

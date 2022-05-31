@@ -81,12 +81,19 @@ public:
     /** Returns the resonance of the filter. */
     SampleType getResonance() const noexcept { return resonance; }
 
+    //==============================================================================
+    /** Sets the length of the ramp used for smoothing parameter changes. */
+    void setRampDurationSeconds(double newDurationSeconds) noexcept;
+
+    /** Returns the ramp duration in seconds. */
+    double getRampDurationSeconds() const noexcept;
+
+    /** Returns true if the current value is currently being interpolated. */
+    bool isSmoothing() const noexcept;
+
     //==========================================================================
     /** Initialises the filter. */
     void prepare(const juce::dsp::ProcessSpec& spec);
-
-    /** Resets the internal state variables of the filter. */
-    void reset();
 
     /** Resets the internal state variables of the filter to a given value. */
     void reset(SampleType newValue);
@@ -106,6 +113,7 @@ public:
         auto& outputBlock = context.getOutputBlock();
         const auto numChannels = outputBlock.getNumChannels();
         const auto numSamples = outputBlock.getNumSamples();
+        const auto len = inputBlock.getNumSamples();
 
         jassert(inputBlock.getNumChannels() <= s1.size());
         jassert(inputBlock.getNumChannels() == numChannels);
@@ -113,6 +121,9 @@ public:
 
         if (context.isBypassed)
         {
+            frq.skip(static_cast<int> (len));
+            res.skip(static_cast<int> (len));
+
             outputBlock.copyFrom(inputBlock);
             return;
         }
@@ -135,17 +146,28 @@ public:
     /** Processes one sample at a time on a given channel. */
     SampleType processSample(int channel, SampleType inputValue);
 
+    double sampleRate = 44100.0, rampDurationSeconds = 0.00005;
+
 private:
     //==========================================================================
     void update();
 
     //==========================================================================
+    /** Parameter Smoothers. */
+    juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Multiplicative> frq;
+    juce::SmoothedValue<SampleType, juce::ValueSmoothingTypes::Linear> res;
+
+    SampleType minFreq = 20.0;
+    SampleType maxFreq = 20000.0;
+
+    //==========================================================================
     SampleType g, h, R2;
     std::vector<SampleType> s1{ 2 }, s2{ 2 };
 
-    double sampleRate = 44100.0;
+    //==========================================================================
     Type filterType = Type::LP2;
-    SampleType cutoffFrequency = static_cast<SampleType> (1000.0), resonance = static_cast<SampleType> (1.0 / std::sqrt(2.0));
+    SampleType cutoffFrequency = 1000.0; 
+    SampleType resonance = 0.70710678118654752440084436210485;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StateVariableTPTFilter)
 };

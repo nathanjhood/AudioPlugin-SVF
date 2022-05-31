@@ -18,15 +18,21 @@ StateVariableTPTFilter<SampleType>::StateVariableTPTFilter()
 template <typename SampleType>
 void StateVariableTPTFilter<SampleType>::setType(Type newType)
 {
-    filterType = newType;
+    if (filterType != newType)
+    {
+        filterType = newType;
+        reset(static_cast<SampleType>(0.0));
+        update();
+    }
 }
 
 template <typename SampleType>
-void StateVariableTPTFilter<SampleType>::setCutoffFrequency(SampleType newCutoffFrequencyHz)
+void StateVariableTPTFilter<SampleType>::setCutoffFrequency(SampleType newFreq)
 {
-    jassert(juce::isPositiveAndBelow(newCutoffFrequencyHz, static_cast<SampleType> (sampleRate * 0.5)));
+    jassert(juce::isPositiveAndBelow(newFreq, static_cast<SampleType> (sampleRate * 0.5)));
+    jassert(static_cast<SampleType>(20.0) <= newFreq && newFreq <= static_cast<SampleType>(20000.0));
 
-    cutoffFrequency = newCutoffFrequencyHz;
+    cutoffFrequency = newFreq;
     frq.setTargetValue(cutoffFrequency);
     update();
 }
@@ -35,6 +41,7 @@ template <typename SampleType>
 void StateVariableTPTFilter<SampleType>::setResonance(SampleType newResonance)
 {
     jassert(newResonance > static_cast<SampleType> (0));
+    jassert(static_cast<SampleType>(0.0) <= newResonance && newResonance <= static_cast<SampleType>(1.0));
 
     resonance = newResonance;
     res.setTargetValue(resonance);
@@ -124,21 +131,30 @@ SampleType StateVariableTPTFilter<SampleType>::processSample(int channel, Sample
     auto yLP = yBP * g + ls2;
     ls2 = yBP * g + yLP;
 
-    switch (filterType)
-    {
-    case Type::LP2:         return (yLP);
-    case Type::LP1:         return (yLP + yBP);
-    case Type::LP2n:        return (yLP * R2);
-    case Type::HP2:         return (yHP);
-    case Type::HP1:         return (yHP + yBP);
-    case Type::HP2n:        return (yHP * R2);
-    case Type::BP2:         return (yBP);
-    case Type::BP2n:        return (yBP * R2);
-    case Type::AP2:         return (inputValue - ((yBP * R2) + (yBP * R2)));
-    case Type::P2:          return (yLP - yHP);
-    case Type::N2:          return (yLP + yHP);
-    default:                return (yLP);
-    }
+    if (filterType == Type::LP2)
+        return (yLP);
+    else if (filterType == Type::LP1)
+        return (yLP + yBP);
+    else if (filterType == Type::LP2n)
+        return (yLP * R2);
+    else if (filterType == Type::HP2)
+        return (yHP);
+    else if (filterType == Type::HP1)
+        return (yHP + yBP);
+    else if (filterType == Type::HP2n)
+        return (yHP * R2);
+    else if (filterType == Type::BP2)
+        return (yBP);
+    else if (filterType == Type::BP2n)
+        return (yBP * R2);
+    else if (filterType == Type::AP2)
+        return (inputValue - ((yBP * R2) + (yBP * R2)));
+    else if (filterType == Type::P2)
+        return (yLP + yHP);
+    else if (filterType == Type::N2)
+        return (yLP - yHP);
+    else
+        return (yLP);
 }
 
 //==============================================================================

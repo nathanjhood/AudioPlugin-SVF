@@ -62,7 +62,7 @@ public:
     /** Sets the cutoff frequency of the filter.
         @param newFrequencyHz the new cutoff frequency in Hz.
     */
-    void setCutoffFrequency(SampleType newFrequencyHz);
+    void setCutoffFrequency(SampleType newFreq);
 
     /** Sets the resonance of the filter.
         Note: The bandwidth of the resonance increases with the value of the

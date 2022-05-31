@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<JUCERPROJECT id="w2wadY" name="AudioPlugin" projectType="audioplug" useAppConfig="0"
+<JUCERPROJECT id="w2wadY" name="AudioPlugin-SVF" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
               companyName="StoneyDSP" companyWebsite="https://github.com/StoneyDSP"
               companyEmail="nathan@StoneyDSP.com" cppLanguageStandard="latest">
-  <MAINGROUP id="jYY1dR" name="AudioPlugin">
+  <MAINGROUP id="jYY1dR" name="AudioPlugin-SVF">
     <GROUP id="{C6D058D9-8AFB-6807-F395-504E03AE2A73}" name="Source">
       <GROUP id="{A788D5D8-1543-C4C9-5BEA-AA5E7F923F17}" name="Components"/>
       <GROUP id="{35E5A888-39FB-6009-A0B8-9F6C584AF5E5}" name="Modules">
-        <FILE id="ltDltf" name="Biquads.cpp" compile="1" resource="0" file="Source/Modules/Biquads.cpp"/>
-        <FILE id="MKRGQx" name="Biquads.h" compile="0" resource="0" file="Source/Modules/Biquads.h"/>
+        <FILE id="zTekJr" name="SVF.cpp" compile="1" resource="0" file="Source/Modules/SVF.cpp"/>
+        <FILE id="Nb9aN6" name="SVF.h" compile="0" resource="0" file="Source/Modules/SVF.h"/>
       </GROUP>
       <FILE id="npXVb1" name="PluginParameters.cpp" compile="1" resource="0"
             file="Source/PluginParameters.cpp"/>

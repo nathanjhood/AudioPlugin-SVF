@@ -13,6 +13,15 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p, APVTS& apvts)
     : AudioProcessorEditor (&p), audioProcessor(p), state(apvts)
 {
+    addAndMakeVisible(freqSlider);
+    freqAttach.reset(new APVTS::SliderAttachment(state, "frequencyID", freqSlider));
+
+    addAndMakeVisible(resSlider);
+    resAttach.reset(new APVTS::SliderAttachment(state, "resonanceID", resSlider));
+
+    addAndMakeVisible(typeBox);
+    typeAttach.reset(new APVTS::ComboBoxAttachment(state, "typeID", typeBox));
+    
     addAndMakeVisible(outputSlider);
     outputAttach.reset(new APVTS::SliderAttachment(state, "outputID", outputSlider));
 
@@ -23,12 +32,12 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAud
     bypassAttach.reset(new APVTS::ButtonAttachment(state, "bypassID", bypassButton));
 
     addAndMakeVisible(displayButton);
-    displayAttach.reset(new APVTS::ButtonAttachment(state, "panelID", bypassButton));
+    displayAttach.reset(new APVTS::ButtonAttachment(state, "panelID", displayButton));
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
 
-    setSize (400, 300);
+    setSize (400, 600);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -53,6 +62,10 @@ void AudioPluginAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     auto sliderLeft = 30;
+    freqSlider.setBounds(sliderLeft, 300, getWidth() - sliderLeft - 10, 20);
+    resSlider.setBounds(sliderLeft, 350, getWidth() - sliderLeft - 10, 20);
+    typeBox.setBounds(sliderLeft, 400, getWidth() - sliderLeft - 10, 20);
+
     outputSlider.setBounds(sliderLeft, 50, getWidth() - sliderLeft - 10, 20);
     dryWetSlider.setBounds(sliderLeft, 100, getWidth() - sliderLeft - 10, 20);
 

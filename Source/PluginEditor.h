@@ -33,10 +33,18 @@ private:
     AudioPluginAudioProcessor& audioProcessor;
     APVTS& state;
 
+    juce::Slider freqSlider;
+    juce::Slider resSlider;
+    juce::ComboBox typeBox;
+
     juce::Slider outputSlider;
     juce::Slider dryWetSlider;
     juce::ToggleButton bypassButton;
     juce::ToggleButton displayButton;
+
+    std::unique_ptr<APVTS::SliderAttachment> freqAttach;
+    std::unique_ptr<APVTS::SliderAttachment> resAttach;
+    std::unique_ptr<APVTS::ComboBoxAttachment> typeAttach;
 
     std::unique_ptr<APVTS::SliderAttachment> outputAttach;
     std::unique_ptr<APVTS::SliderAttachment> dryWetAttach;

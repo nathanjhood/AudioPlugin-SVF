@@ -13,7 +13,8 @@
 #ifndef PLUGINWRAPPER_H_INCLUDED
 #define PLUGINWRAPPER_H_INCLUDED
 
-#include <JuceHeader.h>
+#include "../JuceLibraryCode/JuceHeader.h"
+#include "Modules/SVF.h"
 
 class AudioPluginAudioProcessor;
 
@@ -22,6 +23,7 @@ class ProcessWrapper
 {
 public:
     using APVTS = juce::AudioProcessorValueTreeState;
+    using Type = juce::dsp::StateVariableTPTFilterType;
     //==========================================================================
     /** Constructor. */
     ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts);
@@ -56,12 +58,16 @@ private:
     //==========================================================================
     /** Instantiate objects. */
     juce::dsp::ProcessSpec spec;
+    StateVariableTPTFilter<SampleType> svf;
     juce::dsp::DryWetMixer<SampleType> mixer;
     juce::dsp::Gain<SampleType> output;
 
     //==========================================================================
     /** Parameter pointers. */
     juce::AudioParameterBool*               ioPtr                   { nullptr };
+    juce::AudioParameterFloat*              frequencyPtr            { nullptr };
+    juce::AudioParameterFloat*              resonancePtr            { nullptr };
+    juce::AudioParameterChoice*             typePtr                 { nullptr };
     juce::AudioParameterChoice*             osPtr                   { nullptr };
     juce::AudioParameterFloat*              outputPtr               { nullptr };
     juce::AudioParameterFloat*              mixPtr                  { nullptr };

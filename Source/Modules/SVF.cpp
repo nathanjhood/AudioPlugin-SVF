@@ -162,7 +162,7 @@ template <typename SampleType>
 void StateVariableTPTFilter<SampleType>::update()
 {
     g = static_cast<SampleType> (std::tan(juce::MathConstants<double>::pi * frq.getNextValue() / sampleRate));
-    R2 = static_cast<SampleType> (1.0 - (res.getNextValue() * 0.9875)) + (1.0 - (res.getNextValue() * 0.9875));
+    R2 = static_cast<SampleType> (1.0 - (res.getNextValue() * 0.9875)) + (1.0 - (res.getNextValue() * (static_cast<SampleType>(0.9875))));
     h = static_cast<SampleType> (1.0 / (1.0 + R2 * g + g * g));
 }
 

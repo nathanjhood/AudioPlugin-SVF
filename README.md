@@ -5,8 +5,6 @@ This plugin is left quite bare-bones as it is intended to show how to integrate 
 
 One should be able to compare the AudioPlugin template project against this source code, and easily spot how we've instantiated a dsp module and interacted with it via the APVTS.
 
-(there are certainly a few bugs regarding the custom GUI - please feel free to address in the usual means!)
-
 # Built-in features:
 + variable oversampling up to 16x
 + variable processing precision (floats or doubles)
@@ -14,7 +12,7 @@ One should be able to compare the AudioPlugin template project against this sour
 + master output gain for "wet" signal
 + local context bypass switch
 + master bypass switch
-+ defeatable GUI (requires window close/re-open)
++ resizeable GUI
 + de-coupled processing and true-bypass of audio processors in a lock-free atomic structure
 
 # Before we begin...
@@ -33,15 +31,12 @@ Coffee! That's how I get things done!! If you'd like to see me get more things d
 
 # Manual - v1.0.0b
 
-+ IO - Toggles the filter band on or off.
 + Frequency - Sets the centre frequency of the equalizer filter.
 + Resonance - Increases the amount of "emphasis" of the corner frequency
 + Type* - Chooses the type of filter to use. See below for more.
 + Oversampling - Increasing the oversampling will improve performance at high frequencies - at the cost of more CPU!
 + Mix - Blend between the filter affect (100%) and the dry signal (0%).
-+ Precision - Switch between Float precision (High Quality) and Double precision (beyond High Quality) in the audio path
 + Bypass - Toggles the entire plugin on or off.
-+ GUI - Toggles between a generic, automated GUI arrangement, or the custom one defined in the Editor files (requires window close/re-open)
 
 For further information, please continue reading at https://github.com/StoneyDSP/AudioPlugin
 

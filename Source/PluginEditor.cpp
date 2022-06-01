@@ -31,7 +31,7 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText("yourCompany", getLocalBounds(), juce::Justification::topLeft, 1);
+    g.drawFittedText("StoneyDSP", getLocalBounds(), juce::Justification::topLeft, 1);
     g.drawFittedText(audioProcessor.getName(), getLocalBounds(), juce::Justification::topRight, 1);
 }
 

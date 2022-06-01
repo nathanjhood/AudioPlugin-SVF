@@ -14,9 +14,6 @@
 template <typename SampleType>
 ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts) : audioProcessor(p)
 {
-    ioPtr = dynamic_cast                <juce::AudioParameterBool*>         (apvts.getParameter("ioID"));
-    jassert(ioPtr != nullptr);
-
     frequencyPtr = dynamic_cast         <juce::AudioParameterFloat*>        (apvts.getParameter("frequencyID"));
     jassert(frequencyPtr != nullptr);
 
@@ -164,11 +161,6 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
     juce::dsp::AudioBlock<SampleType> osBlock = overSample[curOS]->processSamplesUp(block);
 
     auto context = juce::dsp::ProcessContextReplacing(osBlock);
-
-    if (ioPtr->get() == true)
-        context.isBypassed = true;
-    else
-        context.isBypassed = false;
 
     svf.process(context);
 

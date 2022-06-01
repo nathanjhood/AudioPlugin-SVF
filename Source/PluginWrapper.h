@@ -64,7 +64,6 @@ private:
 
     //==========================================================================
     /** Parameter pointers. */
-    juce::AudioParameterBool*               ioPtr                   { nullptr };
     juce::AudioParameterFloat*              frequencyPtr            { nullptr };
     juce::AudioParameterFloat*              resonancePtr            { nullptr };
     juce::AudioParameterChoice*             typePtr                 { nullptr };

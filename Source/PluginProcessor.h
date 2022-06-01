@@ -20,7 +20,7 @@ class AudioPluginAudioProcessor  : public juce::AudioProcessor
 public:
     using APVTS = juce::AudioProcessorValueTreeState;
     using precisionType = ProcessingPrecision;
-    //==============================================================================
+    //==========================================================================
     AudioPluginAudioProcessor();
     ~AudioPluginAudioProcessor() override;
 
@@ -35,7 +35,6 @@ public:
     bool isUsingDoublePrecision() const noexcept;
     void setProcessingPrecision(ProcessingPrecision newPrecision) noexcept;
 
-    //==============================================================================
     //==========================================================================
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -86,9 +85,7 @@ private:
 
     //==========================================================================
     /** Parameter pointers. */
-    juce::AudioParameterChoice*     doublesPtr              { nullptr };
     juce::AudioParameterBool*       bypassPtr               { nullptr };
-    juce::AudioParameterBool*       panelPtr                { nullptr };
 
     //==========================================================================
     /** Init variables. */

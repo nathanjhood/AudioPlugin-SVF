@@ -13,9 +13,6 @@
 
 Parameters::Parameters(AudioPluginAudioProcessor& p, APVTS& apvts) : audioProcessor (p)
 {
-    ioPtr = static_cast                <juce::AudioParameterBool*>         (apvts.getParameter("ioID"));
-    jassert(ioPtr != nullptr);
-
     frequencyPtr = static_cast         <juce::AudioParameterFloat*>        (apvts.getParameter("frequencyID"));
     jassert(frequencyPtr != nullptr);
 
@@ -59,11 +56,10 @@ void Parameters::setParameterLayout(Params& params)
 
     auto osString = juce::StringArray({ "1x", "2x", "4x", "8x", "16x" });
 
-    params.push_back(std::make_unique<juce::AudioParameterBool>("ioID", "IO", false));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("frequencyID", "Frequency", freqRange, 632.45f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("resonanceID", "Resonance", 00.00f, 01.00f, 00.10f));
-    params.push_back(std::make_unique<juce::AudioParameterChoice>("typeID", "Type", fString, 0));
-    params.push_back(std::make_unique<juce::AudioParameterChoice>("osID", "Oversampling", osString, 0));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("outputID", "Output", gainRange, 00.00f));
-    params.push_back(std::make_unique<juce::AudioParameterFloat>("mixID", "Mix", mixRange, 100.00f));
+    params.add(std::make_unique<juce::AudioParameterFloat>("frequencyID", "Frequency", freqRange, 632.45f));
+    params.add(std::make_unique<juce::AudioParameterFloat>("resonanceID", "Resonance", 00.00f, 01.00f, 00.10f));
+    params.add(std::make_unique<juce::AudioParameterChoice>("typeID", "Type", fString, 0));
+    params.add(std::make_unique<juce::AudioParameterChoice>("osID", "Oversampling", osString, 0));
+    params.add(std::make_unique<juce::AudioParameterFloat>("outputID", "Output", gainRange, 00.00f));
+    params.add(std::make_unique<juce::AudioParameterFloat>("mixID", "Mix", mixRange, 100.00f));
 }

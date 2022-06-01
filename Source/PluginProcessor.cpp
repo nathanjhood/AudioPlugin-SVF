@@ -22,14 +22,8 @@ AudioPluginAudioProcessor::AudioPluginAudioProcessor()
                        )
 #endif
 {
-    doublesPtr = dynamic_cast       <juce::AudioParameterChoice*>    (apvts.getParameter("precisionID"));
-    jassert(doublesPtr != nullptr);
-
     bypassPtr = dynamic_cast       <juce::AudioParameterBool*>    (apvts.getParameter("bypassID"));
     jassert(bypassPtr != nullptr);
-
-    panelPtr = dynamic_cast       <juce::AudioParameterBool*>    (apvts.getParameter("panelID"));
-    jassert(panelPtr != nullptr);
 }
 
 AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
@@ -44,17 +38,13 @@ juce::AudioProcessorValueTreeState& AudioPluginAudioProcessor::getAPVTS()
 
 juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::getParameterLayout()
 {
-    std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
+    APVTS::ParameterLayout params;
 
     Parameters::setParameterLayout(params);
 
-    auto pString = juce::StringArray({ "Floats", "Doubles" });
+    params.add(std::make_unique<juce::AudioParameterBool>("bypassID", "Bypass", false));
 
-    params.push_back(std::make_unique<juce::AudioParameterChoice>("precisionID", "Precision", pString, 0));
-    params.push_back(std::make_unique<juce::AudioParameterBool>("bypassID", "Bypass", false));
-    params.push_back(std::make_unique<juce::AudioParameterBool>("panelID", "GUI", true));
-
-    return { params.begin(), params.end() };
+    return params;
 }
 
 //==============================================================================
@@ -65,10 +55,7 @@ juce::AudioProcessorParameter* AudioPluginAudioProcessor::getBypassParameter() c
 
 bool AudioPluginAudioProcessor::supportsDoublePrecisionProcessing() const
 {
-    if (processingPrecision == doublePrecision)
-        return true;
-    else
-        return false;
+    return true;
 }
 
 juce::AudioProcessor::ProcessingPrecision AudioPluginAudioProcessor::getProcessingPrecision() const noexcept
@@ -219,42 +206,34 @@ bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 //==============================================================================
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
-    isUsingDoublePrecision();
+    if (bypassPtr->get() == false)
 
-    if (doublesPtr->getIndex() == 0)
+    {
+        juce::ScopedNoDenormals noDenormals;
 
-        if (bypassPtr->get() == false)
+        processorFloat.process(buffer, midiMessages);
+    }
 
-        {
-            juce::ScopedNoDenormals noDenormals;
-
-            processorFloat.process(buffer, midiMessages);
-        }
-
-        else
-        {
-            processBlockBypassed(buffer, midiMessages);
-        }
+    else
+    {
+        processBlockBypassed(buffer, midiMessages);
+    }
 }
 
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages)
 {
-    isUsingDoublePrecision();
+    if (bypassPtr->get() == false)
 
-    if (doublesPtr->getIndex() == 1)
+    {
+        juce::ScopedNoDenormals noDenormals;
 
-        if (bypassPtr->get() == false)
+        processorDouble.process(buffer, midiMessages);
+    }
 
-        {
-            juce::ScopedNoDenormals noDenormals;
-
-            processorDouble.process(buffer, midiMessages);
-        }
-
-        else
-        {
-            processBlockBypassed(buffer, midiMessages);
-        }
+    else
+    {
+        processBlockBypassed(buffer, midiMessages);
+    }
 }
 
 void AudioPluginAudioProcessor::processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -277,10 +256,7 @@ bool AudioPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
-    if (panelPtr->get() == true)
-        return new AudioPluginAudioProcessorEditor(*this, apvts);
-    else
-        return new juce::GenericAudioProcessorEditor(*this);
+    return new AudioPluginAudioProcessorEditor(*this);
 }
 
 //==============================================================================

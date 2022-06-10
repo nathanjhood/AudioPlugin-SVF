@@ -11,16 +11,11 @@
 
 //==============================================================================
 AudioPluginAudioProcessor::AudioPluginAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-#endif
+                       ),
+    apvts(*this, &undoManager, "Parameters", createParameterLayout())
 {
     bypassPtr = dynamic_cast       <juce::AudioParameterBool*>    (apvts.getParameter("bypassID"));
     jassert(bypassPtr != nullptr);
@@ -31,23 +26,6 @@ AudioPluginAudioProcessor::~AudioPluginAudioProcessor()
 }
 
 //==============================================================================
-juce::AudioProcessorValueTreeState& AudioPluginAudioProcessor::getAPVTS()
-{
-    return apvts;
-}
-
-juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::getParameterLayout()
-{
-    APVTS::ParameterLayout params;
-
-    Parameters::setParameterLayout(params);
-
-    params.add(std::make_unique<juce::AudioParameterBool>("bypassID", "Bypass", false));
-
-    return params;
-}
-
-//==============================================================================
 juce::AudioProcessorParameter* AudioPluginAudioProcessor::getBypassParameter() const
 {
     return bypassPtr;
@@ -55,7 +33,7 @@ juce::AudioProcessorParameter* AudioPluginAudioProcessor::getBypassParameter() c
 
 bool AudioPluginAudioProcessor::supportsDoublePrecisionProcessing() const
 {
-    return true;
+    return false;
 }
 
 juce::AudioProcessor::ProcessingPrecision AudioPluginAudioProcessor::getProcessingPrecision() const noexcept
@@ -86,29 +64,17 @@ const juce::String AudioPluginAudioProcessor::getName() const
 
 bool AudioPluginAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
-    return true;
-   #else
     return false;
-   #endif
 }
 
 bool AudioPluginAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
     return false;
-   #endif
 }
 
 bool AudioPluginAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
     return false;
-   #endif
 }
 
 double AudioPluginAudioProcessor::getTailLengthSeconds() const
@@ -165,43 +131,32 @@ void AudioPluginAudioProcessor::releaseResources()
     processorDouble.reset();
 }
 
-void AudioPluginAudioProcessor::numBusesChanged()
-{
-    processorFloat.reset();
-    processorDouble.reset();
-}
-
 void AudioPluginAudioProcessor::numChannelsChanged()
 {
-    processorFloat.reset();
-    processorDouble.reset();
+    releaseResources();
 }
 
-#ifndef JucePlugin_PreferredChannelConfigurations
+void AudioPluginAudioProcessor::numBusesChanged()
+{
+    releaseResources();
+}
+
+void AudioPluginAudioProcessor::processorLayoutsChanged()
+{
+    releaseResources();
+}
+
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
-    return true;
-  #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
-   #endif
 
     return true;
-  #endif
 }
-#endif
 
 //==============================================================================
 void AudioPluginAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -256,7 +211,7 @@ bool AudioPluginAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* AudioPluginAudioProcessor::createEditor()
 {
-    return new AudioPluginAudioProcessorEditor(*this);
+    return new AudioPluginAudioProcessorEditor(*this, getAPVTS(), undoManager);
 }
 
 //==============================================================================
@@ -283,6 +238,15 @@ void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeI
             apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
+//==============================================================================
+juce::AudioProcessorValueTreeState::ParameterLayout AudioPluginAudioProcessor::createParameterLayout()
+{
+    APVTS::ParameterLayout params;
+
+    Parameters::setParameterLayout(params);
+
+    return params;
+}
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

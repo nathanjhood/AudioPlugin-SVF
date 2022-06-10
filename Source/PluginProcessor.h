@@ -25,11 +25,7 @@ public:
     ~AudioPluginAudioProcessor() override;
 
     //==========================================================================
-    APVTS& getAPVTS();
-    static APVTS::ParameterLayout getParameterLayout();
-
-    //==========================================================================
-    juce::AudioProcessorParameter* getBypassParameter() const;
+    juce::AudioProcessorParameter* getBypassParameter() const override;
     bool supportsDoublePrecisionProcessing() const override;
     ProcessingPrecision getProcessingPrecision() const noexcept;
     bool isUsingDoublePrecision() const noexcept;
@@ -38,15 +34,16 @@ public:
     //==========================================================================
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-    void numBusesChanged();
-    void numChannelsChanged();
+    void numChannelsChanged() override;
+    void numBusesChanged() override;
+    void processorLayoutsChanged() override;
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 
     //==========================================================================
     void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
     void processBlock(juce::AudioBuffer<double>&, juce::MidiBuffer&) override;
-    void processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages);
-    void processBlockBypassed(juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages);
+    void processBlockBypassed(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
+    void processBlockBypassed(juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages) override;
 
     //==========================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -74,18 +71,23 @@ public:
 protected:
     //==========================================================================
     /** Audio processor value tree. */
-    APVTS apvts { *this, nullptr, "Parameters", getParameterLayout() };
+    juce::UndoManager undoManager;
+    APVTS apvts;
+    APVTS& getAPVTS() { return apvts; };
+    static APVTS::ParameterLayout createParameterLayout();
+    
 
 private:
     //==========================================================================
     /** Audio processor members. */
-    Parameters                      parameters              { *this, getAPVTS() };
-    ProcessWrapper<float>           processorFloat          { *this, getAPVTS() };
-    ProcessWrapper<double>          processorDouble         { *this, getAPVTS() };
+    Parameters parameters { *this, getAPVTS() };
+    ProcessWrapper<float> processorFloat { *this, getAPVTS() };
+    ProcessWrapper<double> processorDouble { *this, getAPVTS() };
 
     //==========================================================================
     /** Parameter pointers. */
-    juce::AudioParameterBool*       bypassPtr               { nullptr };
+    juce::AudioParameterInt* precisionPtr { nullptr };
+    juce::AudioParameterBool* bypassPtr { nullptr };
 
     //==========================================================================
     /** Init variables. */

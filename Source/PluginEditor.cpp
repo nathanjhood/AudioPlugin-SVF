@@ -38,6 +38,7 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 //==============================================================================
 void AudioPluginAudioProcessorEditor::timerCallback()
 {
+    subComponents.resized();
     undoManager.beginNewTransaction();
 }
 
@@ -64,6 +65,5 @@ void AudioPluginAudioProcessorEditor::resized()
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
 
-    subComponents.resized();
     subComponents.setBounds(0, 0, getWidth(), getHeight());
 }

@@ -225,13 +225,10 @@ void AutoComponent::resized()
         first = false;
     }
 
-    x = 30;
-    first = true;
-
     for (auto* b : buttons)
     {
         int offset = first ? 0 : -5;
-        b->button.setBounds(x - offset, absCentreY - 70, 70, 20);
+        b->button.setBounds(x - offset, absCentreY + 140, 70, 20);
         x = b->button.getRight();
         first = false;
     }

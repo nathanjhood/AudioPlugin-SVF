@@ -12,24 +12,27 @@
 #include "PluginProcessor.h"
 
 template <typename SampleType>
-ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts) : audioProcessor(p)
+ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts) 
+    :
+    audioProcessor(p),
+    state(apvts)
 {
-    frequencyPtr = dynamic_cast         <juce::AudioParameterFloat*>        (apvts.getParameter("frequencyID"));
+    spec.sampleRate = audioProcessor.getSampleRate();
+    spec.maximumBlockSize = audioProcessor.getBlockSize();
+    spec.numChannels = audioProcessor.getTotalNumInputChannels();
+
+    frequencyPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("frequencyID"));
+    resonancePtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("resonanceID"));
+    typePtr = dynamic_cast <juce::AudioParameterChoice*> (state.getParameter("typeID"));
+    osPtr = dynamic_cast <juce::AudioParameterChoice*> (state.getParameter("osID"));
+    outputPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("outputID"));
+    mixPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("mixID"));
+    
     jassert(frequencyPtr != nullptr);
-
-    resonancePtr = dynamic_cast         <juce::AudioParameterFloat*>        (apvts.getParameter("resonanceID"));
     jassert(resonancePtr != nullptr);
-
-    typePtr = dynamic_cast              <juce::AudioParameterChoice*>       (apvts.getParameter("typeID"));
     jassert(typePtr != nullptr);
-
-    osPtr = dynamic_cast                <juce::AudioParameterChoice*>       (apvts.getParameter("osID"));
     jassert(osPtr != nullptr);
-
-    outputPtr = dynamic_cast            <juce::AudioParameterFloat*>        (apvts.getParameter("outputID"));
     jassert(outputPtr != nullptr);
-
-    mixPtr = dynamic_cast              <juce::AudioParameterFloat*>        (apvts.getParameter("mixID"));
     jassert(mixPtr != nullptr);
 
     auto osChannels = audioProcessor.getTotalNumInputChannels();
@@ -42,28 +45,13 @@ ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& 
 }
 
 template <typename SampleType>
-void ProcessWrapper<SampleType>::setOversampling()
-{
-    curOS = (int)osPtr->getIndex();
-    if (curOS != prevOS)
-    {
-        overSamplingFactor = 1 << curOS;
-        prevOS = curOS;
-        svf.reset(static_cast<SampleType>(0.0));
-        svf.sampleRate = spec.sampleRate * overSamplingFactor;
-        mixer.reset();
-        output.reset();
-    }
-}
-
-template <typename SampleType>
 void ProcessWrapper<SampleType>::prepare(double sampleRate, int samplesPerBlock)
 {
     overSamplingFactor = 1 << curOS;
     prevOS = curOS;
 
-    spec.sampleRate = sampleRate;
-    spec.maximumBlockSize = samplesPerBlock;
+    spec.sampleRate = audioProcessor.getSampleRate();
+    spec.maximumBlockSize = audioProcessor.getBlockSize();
     spec.numChannels = audioProcessor.getTotalNumInputChannels();
 
     for (int i = 0; i < 5; ++i)
@@ -72,8 +60,8 @@ void ProcessWrapper<SampleType>::prepare(double sampleRate, int samplesPerBlock)
     for (int i = 0; i < 5; ++i)
         overSample[i]->numChannels = (size_t)spec.numChannels;
 
-    svf.prepare(spec);
     mixer.prepare(spec);
+    svf.prepare(spec);
     output.prepare(spec);
 
     reset();
@@ -83,8 +71,8 @@ void ProcessWrapper<SampleType>::prepare(double sampleRate, int samplesPerBlock)
 template <typename SampleType>
 void ProcessWrapper<SampleType>::reset()
 {
-    svf.reset(static_cast<SampleType>(0.0));
     mixer.reset();
+    svf.reset(static_cast<SampleType>(0.0));
     output.reset();
 
     for (int i = 0; i < 5; ++i)
@@ -92,58 +80,6 @@ void ProcessWrapper<SampleType>::reset()
 
     for (int i = 0; i < 5; ++i)
         overSample[i]->reset();
-}
-
-template <typename SampleType>
-void ProcessWrapper<SampleType>::update()
-{
-    setOversampling();
-
-    svf.setCutoffFrequency(frequencyPtr->get());
-    svf.setResonance(resonancePtr->get());
-
-    switch (typePtr->getIndex())
-    {
-    case 0:
-        svf.setType(StateVariableTPTFilterType::LP2);
-        break;
-    case 1:
-        svf.setType(StateVariableTPTFilterType::LP1);
-        break;
-    case 2:
-        svf.setType(StateVariableTPTFilterType::LP2n);
-        break;
-    case 3:
-        svf.setType(StateVariableTPTFilterType::HP2);
-        break;
-    case 4:
-        svf.setType(StateVariableTPTFilterType::HP1);
-        break;
-    case 5:
-        svf.setType(StateVariableTPTFilterType::HP2n);
-        break;
-    case 6:
-        svf.setType(StateVariableTPTFilterType::BP2);
-        break;
-    case 7:
-        svf.setType(StateVariableTPTFilterType::BP2n);
-        break;
-    case 8:
-        svf.setType(StateVariableTPTFilterType::AP2);
-        break;
-    case 9:
-        svf.setType(StateVariableTPTFilterType::P2);
-        break;
-    case 10:
-        svf.setType(StateVariableTPTFilterType::N2);
-        break;
-    default:
-        svf.setType(StateVariableTPTFilterType::LP2);
-    }
-
-    mixer.setWetMixProportion(mixPtr->get() * 0.01f);
-
-    output.setGainLinear(juce::Decibels::decibelsToGain(outputPtr->get()));
 }
 
 //==============================================================================
@@ -169,6 +105,35 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
     overSample[curOS]->processSamplesDown(block);
 
     mixer.mixWetSamples(block);
+}
+
+template <typename SampleType>
+void ProcessWrapper<SampleType>::setOversampling()
+{
+    curOS = (int)osPtr->getIndex();
+    if (curOS != prevOS)
+    {
+        overSamplingFactor = 1 << curOS;
+        prevOS = curOS;
+        svf.reset(static_cast<SampleType>(0.0));
+        svf.sampleRate = spec.sampleRate * overSamplingFactor;
+        mixer.reset();
+        output.reset();
+    }
+}
+
+template <typename SampleType>
+void ProcessWrapper<SampleType>::update()
+{
+    setOversampling();
+
+    mixer.setWetMixProportion(mixPtr->get() * 0.01f);
+
+    svf.setCutoffFrequency(frequencyPtr->get());
+    svf.setResonance(resonancePtr->get());
+    svf.setType(static_cast<StateVariableTPTFilterType>(typePtr->getIndex()));
+
+    output.setGainLinear(juce::Decibels::decibelsToGain(outputPtr->get()));
 }
 
 //==============================================================================

@@ -47,6 +47,7 @@ private:
     // This reference is provided as a quick way for the wrapper to
     // access the processor object that created it.
     AudioPluginAudioProcessor& audioProcessor;
+    APVTS& state;
 
     //==========================================================================
     /** Sets the oversampling factor. */
@@ -58,8 +59,8 @@ private:
     //==========================================================================
     /** Instantiate objects. */
     juce::dsp::ProcessSpec spec;
-    StateVariableTPTFilter<SampleType> svf;
     juce::dsp::DryWetMixer<SampleType> mixer;
+    StateVariableTPTFilter<SampleType> svf;
     juce::dsp::Gain<SampleType> output;
 
     //==========================================================================

@@ -1,7 +1,7 @@
 # AudioPlugin-SVF
 Simple Multi-Mode State Variable Filter using TPT, built directly from the StoneyDSP AudioPlugin template repository and the juce State Variable TPT Filter module (with a few mods)...
 
-![Build-01-06-2022](https://github.com/StoneyDSP/AudioPlugin-SVF/blob/62dc8dfaf21fcd92d80882e1cdbfb0979c9f055a/Res/Build-01-06-2022.png)
+![Build-01-06-2022](https://github.com/StoneyDSP/AudioPlugin-SVF/blob/234151b0e6595737b33ef5a8f1afb08eb9214194/Res/SVF-AutoGUI-1-0-1.png)
 
 This plugin is left quite bare-bones as it is intended to show how to integrate the AudioPlugin template repository with the off-the-shelf juce modules and ways of working (as best I can).
 

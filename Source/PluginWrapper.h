@@ -30,7 +30,7 @@ public:
 
     //==========================================================================
     /** Initialises the processor. */
-    void prepare(double sampleRate, int samplesPerBlock);
+    void prepare();
 
     /** Resets the internal state variables of the processor. */
     void reset();
@@ -41,6 +41,8 @@ public:
 
     //==========================================================================
     void process(juce::AudioBuffer<SampleType>& buffer, juce::MidiBuffer& midiMessages);
+
+    SampleType getLatencySamples() const noexcept;
 
 private:
     //==========================================================================
@@ -65,12 +67,12 @@ private:
 
     //==========================================================================
     /** Parameter pointers. */
-    juce::AudioParameterFloat*              frequencyPtr            { nullptr };
-    juce::AudioParameterFloat*              resonancePtr            { nullptr };
-    juce::AudioParameterChoice*             typePtr                 { nullptr };
-    juce::AudioParameterChoice*             osPtr                   { nullptr };
-    juce::AudioParameterFloat*              outputPtr               { nullptr };
-    juce::AudioParameterFloat*              mixPtr                  { nullptr };
+    juce::AudioParameterFloat* frequencyPtr { nullptr };
+    juce::AudioParameterFloat* resonancePtr { nullptr };
+    juce::AudioParameterChoice* typePtr { nullptr };
+    juce::AudioParameterChoice* osPtr { nullptr };
+    juce::AudioParameterFloat* outputPtr { nullptr };
+    juce::AudioParameterFloat* mixPtr { nullptr };
 
     //==========================================================================
     /** Init variables. */

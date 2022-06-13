@@ -45,12 +45,12 @@ ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& 
 }
 
 template <typename SampleType>
-void ProcessWrapper<SampleType>::prepare(double sampleRate, int samplesPerBlock)
+void ProcessWrapper<SampleType>::prepare()
 {
     overSamplingFactor = 1 << curOS;
     prevOS = curOS;
 
-    spec.sampleRate = audioProcessor.getSampleRate();
+    spec.sampleRate = audioProcessor.getSampleRate() * overSamplingFactor;
     spec.maximumBlockSize = audioProcessor.getBlockSize();
     spec.numChannels = audioProcessor.getTotalNumInputChannels();
 
@@ -72,6 +72,7 @@ template <typename SampleType>
 void ProcessWrapper<SampleType>::reset()
 {
     mixer.reset();
+    mixer.setWetLatency(getLatencySamples());
     svf.reset(static_cast<SampleType>(0.0));
     output.reset();
 
@@ -91,10 +92,11 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
     update();
 
     juce::dsp::AudioBlock<SampleType> block(buffer);
+    juce::dsp::AudioBlock<SampleType> osBlock(buffer);
 
     mixer.pushDrySamples(block);
 
-    juce::dsp::AudioBlock<SampleType> osBlock = overSample[curOS]->processSamplesUp(block);
+    osBlock = overSample[curOS]->processSamplesUp(block);
 
     auto context = juce::dsp::ProcessContextReplacing(osBlock);
 
@@ -108,6 +110,13 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
 }
 
 template <typename SampleType>
+SampleType ProcessWrapper<SampleType>::getLatencySamples() const noexcept
+{
+    // latency of oversampling
+    return overSample[curOS]->getLatencyInSamples();
+}
+
+template <typename SampleType>
 void ProcessWrapper<SampleType>::setOversampling()
 {
     curOS = (int)osPtr->getIndex();
@@ -116,8 +125,8 @@ void ProcessWrapper<SampleType>::setOversampling()
         overSamplingFactor = 1 << curOS;
         prevOS = curOS;
         svf.reset(static_cast<SampleType>(0.0));
-        svf.sampleRate = spec.sampleRate * overSamplingFactor;
         mixer.reset();
+        mixer.setWetLatency(getLatencySamples());
         output.reset();
     }
 }
@@ -125,6 +134,10 @@ void ProcessWrapper<SampleType>::setOversampling()
 template <typename SampleType>
 void ProcessWrapper<SampleType>::update()
 {
+    spec.sampleRate = audioProcessor.getSampleRate() * overSamplingFactor;
+    spec.maximumBlockSize = audioProcessor.getBlockSize();
+    spec.numChannels = audioProcessor.getTotalNumInputChannels();
+
     setOversampling();
 
     mixer.setWetMixProportion(mixPtr->get() * 0.01f);

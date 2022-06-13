@@ -118,8 +118,8 @@ void AudioPluginAudioProcessor::prepareToPlay(double sampleRate, int samplesPerB
 
     getProcessingPrecision();
 
-    processorFloat.prepare(sampleRate, samplesPerBlock);
-    processorDouble.prepare(sampleRate, samplesPerBlock);
+    processorFloat.prepare();
+    processorDouble.prepare();
 }
 
 void AudioPluginAudioProcessor::releaseResources()
@@ -133,17 +133,26 @@ void AudioPluginAudioProcessor::releaseResources()
 
 void AudioPluginAudioProcessor::numChannelsChanged()
 {
-    releaseResources();
+    processorFloat.reset();
+    processorDouble.reset();
+    processorFloat.prepare();
+    processorDouble.prepare();
 }
 
 void AudioPluginAudioProcessor::numBusesChanged()
 {
-    releaseResources();
+    processorFloat.reset();
+    processorDouble.reset();
+    processorFloat.prepare();
+    processorDouble.prepare();
 }
 
 void AudioPluginAudioProcessor::processorLayoutsChanged()
 {
-    releaseResources();
+    processorFloat.reset();
+    processorDouble.reset();
+    processorFloat.prepare();
+    processorDouble.prepare();
 }
 
 bool AudioPluginAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
@@ -226,11 +235,27 @@ void AudioPluginAudioProcessor::getStateInformation (juce::MemoryBlock& destData
     copyXmlToBinary(*xml, destData);
 }
 
+void AudioPluginAudioProcessor::getCurrentProgramStateInformation(juce::MemoryBlock& destData)
+{
+    auto state = apvts.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
+}
+
 void AudioPluginAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
 
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(apvts.state.getType()))
+            apvts.replaceState(juce::ValueTree::fromXml(*xmlState));
+}
+
+void AudioPluginAudioProcessor::setCurrentProgramStateInformation(const void* data, int sizeInBytes)
+{
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
 
     if (xmlState.get() != nullptr)

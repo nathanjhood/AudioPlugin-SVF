@@ -56,7 +56,7 @@ void Parameters::setParameterLayout(Params& params)
     juce::ignoreUnused(inMeter);
     juce::ignoreUnused(outMeter);
 
-    params.add(std::make_unique<juce::AudioParameterFloat>("frequencyID", "Frequency", freqRange, 632.45f, frequency, genParam));
+    params.add(std::make_unique<juce::AudioParameterFloat>("frequencyID", "Frequency", freqRange, 632.455f, frequency, genParam));
     params.add(std::make_unique<juce::AudioParameterFloat>("resonanceID", "Resonance", resRange, 00.10f, reso, genParam));
     params.add(std::make_unique<juce::AudioParameterChoice>("typeID", "Type", fString, 0));
     params.add(std::make_unique<juce::AudioParameterChoice>("osID", "Oversampling", osString, 0));

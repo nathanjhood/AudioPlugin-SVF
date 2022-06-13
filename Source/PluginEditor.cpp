@@ -16,9 +16,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     audioProcessor(p),
     state(apvts),
     undoManager(um),
-    subComponents(p, apvts),
-    undoButton("Undo"),
-    redoButton("Redo")
+    subComponents(p, apvts)
 {
     setSize(350, 300);
     addAndMakeVisible(subComponents);
@@ -28,7 +26,7 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     redoButton.onClick = [this] { undoManager.redo(); };
     setResizable(true, true);
 
-    startTimerHz(24);
+    startTimerHz(60);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
@@ -38,8 +36,6 @@ AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 //==============================================================================
 void AudioPluginAudioProcessorEditor::timerCallback()
 {
-    subComponents.resized();
-    undoManager.beginNewTransaction();
 }
 
 //==============================================================================
@@ -66,4 +62,9 @@ void AudioPluginAudioProcessorEditor::resized()
     // subcomponents in your editor..
 
     subComponents.setBounds(0, 0, getWidth(), getHeight());
+    undoButton.setBounds((getWidth() / 2) - 10, getHeight() - 20, 20, 20);
+    redoButton.setBounds((getWidth() / 2) + 10, getHeight() - 20, 20, 20);
+    subComponents.resized();
+    undoButton.resized();
+    redoButton.resized();
 }

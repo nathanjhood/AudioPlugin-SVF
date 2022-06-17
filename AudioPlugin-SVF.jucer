@@ -4,7 +4,7 @@
               addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
               companyName="StoneyDSP" companyWebsite="https://github.com/StoneyDSP"
               companyEmail="nathan@StoneyDSP.com" cppLanguageStandard="latest"
-              pluginFormats="buildVST3" version="1.0.1">
+              pluginFormats="buildVST3" version="1.0.1" pluginCode="W2wc">
   <MAINGROUP id="jYY1dR" name="AudioPlugin-SVF">
     <GROUP id="{C6D058D9-8AFB-6807-F395-504E03AE2A73}" name="Source">
       <GROUP id="{A788D5D8-1543-C4C9-5BEA-AA5E7F923F17}" name="Components">
@@ -36,9 +36,9 @@
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="AudioPlugin" enablePluginBinaryCopyStep="1"
+        <CONFIGURATION isDebug="1" name="Debug" targetName="AudioPlugin-SVF" enablePluginBinaryCopyStep="1"
                        vst3BinaryLocation="C:\Program Files\Common Files\VST3\StoneyDSP"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="AudioPlugin" enablePluginBinaryCopyStep="1"
+        <CONFIGURATION isDebug="0" name="Release" targetName="AudioPlugin-SVF" enablePluginBinaryCopyStep="1"
                        vst3BinaryLocation="C:\Program Files\Common Files\VST3\StoneyDSP"/>
       </CONFIGURATIONS>
       <MODULEPATHS>

@@ -15,14 +15,14 @@
 //==============================================================================
 /**
 */
-class AudioPluginAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
+class AudioPluginSVFAudioProcessorEditor  : public juce::AudioProcessorEditor, public juce::Timer
 {
 public:
     using APVTS = juce::AudioProcessorValueTreeState;
 
     //==========================================================================
-    AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p, APVTS& apvts, juce::UndoManager& um);
-    ~AudioPluginAudioProcessorEditor() override;
+    AudioPluginSVFAudioProcessorEditor(AudioPluginSVFAudioProcessor& p, APVTS& apvts, juce::UndoManager& um);
+    ~AudioPluginSVFAudioProcessorEditor() override;
 
     //==========================================================================
     void timerCallback() override;
@@ -32,7 +32,7 @@ public:
 private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
-    AudioPluginAudioProcessor& audioProcessor;
+    AudioPluginSVFAudioProcessor& audioProcessor;
     APVTS& state;
     juce::UndoManager& undoManager;
 
@@ -41,5 +41,5 @@ private:
     juce::ArrowButton undoButton{ "Undo", 0.5f , juce::Colours::white };
     juce::ArrowButton redoButton{ "Redo", 0.0f , juce::Colours::white };
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginSVFAudioProcessorEditor)
 };

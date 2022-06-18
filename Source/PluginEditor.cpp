@@ -10,7 +10,7 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudioProcessor& p, APVTS& apvts, juce::UndoManager& um)
+AudioPluginSVFAudioProcessorEditor::AudioPluginSVFAudioProcessorEditor(AudioPluginSVFAudioProcessor& p, APVTS& apvts, juce::UndoManager& um)
     :
     juce::AudioProcessorEditor(&p),
     audioProcessor(p),
@@ -29,17 +29,17 @@ AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor(AudioPluginAudi
     startTimerHz(60);
 }
 
-AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
+AudioPluginSVFAudioProcessorEditor::~AudioPluginSVFAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void AudioPluginAudioProcessorEditor::timerCallback()
+void AudioPluginSVFAudioProcessorEditor::timerCallback()
 {
 }
 
 //==============================================================================
-void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
+void AudioPluginSVFAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll(juce::Colours::antiquewhite);
@@ -56,7 +56,7 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
     g.drawFittedText(ProjectInfo::versionString, getLocalBounds(), juce::Justification::bottomLeft, 1);
 }
 
-void AudioPluginAudioProcessorEditor::resized()
+void AudioPluginSVFAudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..

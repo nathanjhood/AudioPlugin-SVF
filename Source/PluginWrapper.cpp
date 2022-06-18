@@ -12,14 +12,15 @@
 #include "PluginProcessor.h"
 
 template <typename SampleType>
-ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts) 
+ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginSVFAudioProcessor& p, APVTS& apvts, juce::dsp::ProcessSpec& spec) 
     :
     audioProcessor(p),
-    state(apvts)
+    state(apvts),
+    setup(spec)
 {
-    spec.sampleRate = audioProcessor.getSampleRate();
-    spec.maximumBlockSize = audioProcessor.getBlockSize();
-    spec.numChannels = audioProcessor.getTotalNumInputChannels();
+    setup.sampleRate = audioProcessor.getSampleRate();
+    setup.maximumBlockSize = audioProcessor.getBlockSize();
+    setup.numChannels = audioProcessor.getTotalNumInputChannels();
 
     frequencyPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("frequencyID"));
     resonancePtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("resonanceID"));
@@ -27,6 +28,7 @@ ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& 
     osPtr = dynamic_cast <juce::AudioParameterChoice*> (state.getParameter("osID"));
     outputPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("outputID"));
     mixPtr = dynamic_cast <juce::AudioParameterFloat*> (state.getParameter("mixID"));
+    bypassPtr = dynamic_cast <juce::AudioParameterBool*> (state.getParameter("bypassID"));
     
     jassert(frequencyPtr != nullptr);
     jassert(resonancePtr != nullptr);
@@ -34,31 +36,32 @@ ProcessWrapper<SampleType>::ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& 
     jassert(osPtr != nullptr);
     jassert(outputPtr != nullptr);
     jassert(mixPtr != nullptr);
+    jassert(bypassPtr != nullptr);
 
     auto osChannels = audioProcessor.getTotalNumInputChannels();
 
     auto osFilter = juce::dsp::Oversampling<SampleType>::filterHalfBandPolyphaseIIR;
 
     for (int i = 0; i < 5; ++i)
-        overSample[i] = std::make_unique<juce::dsp::Oversampling<SampleType>>
+        oversampler[i] = std::make_unique<juce::dsp::Oversampling<SampleType>>
         (osChannels, i, osFilter, true, false);
 }
 
 template <typename SampleType>
-void ProcessWrapper<SampleType>::prepare()
+void ProcessWrapper<SampleType>::prepare(juce::dsp::ProcessSpec& spec)
 {
-    overSamplingFactor = 1 << curOS;
+    oversamplingFactor = 1 << curOS;
     prevOS = curOS;
 
-    spec.sampleRate = audioProcessor.getSampleRate() * overSamplingFactor;
+    spec.sampleRate = audioProcessor.getSampleRate();
     spec.maximumBlockSize = audioProcessor.getBlockSize();
     spec.numChannels = audioProcessor.getTotalNumInputChannels();
 
     for (int i = 0; i < 5; ++i)
-        overSample[i]->initProcessing(spec.maximumBlockSize);
+        oversampler[i]->initProcessing(spec.maximumBlockSize);
 
     for (int i = 0; i < 5; ++i)
-        overSample[i]->numChannels = (size_t)spec.numChannels;
+        oversampler[i]->numChannels = (size_t)spec.numChannels;
 
     mixer.prepare(spec);
     svf.prepare(spec);
@@ -77,10 +80,10 @@ void ProcessWrapper<SampleType>::reset()
     output.reset();
 
     for (int i = 0; i < 5; ++i)
-        overSample[i]->numChannels = (size_t)spec.numChannels;
+        oversampler[i]->numChannels = (size_t)setup.numChannels;
 
     for (int i = 0; i < 5; ++i)
-        overSample[i]->reset();
+        oversampler[i]->reset();
 }
 
 //==============================================================================
@@ -96,7 +99,7 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
 
     mixer.pushDrySamples(block);
 
-    osBlock = overSample[curOS]->processSamplesUp(block);
+    osBlock = oversampler[curOS]->processSamplesUp(block);
 
     auto context = juce::dsp::ProcessContextReplacing(osBlock);
 
@@ -104,7 +107,7 @@ void ProcessWrapper<SampleType>::process(juce::AudioBuffer<SampleType>& buffer, 
 
     output.process(context);
 
-    overSample[curOS]->processSamplesDown(block);
+    oversampler[curOS]->processSamplesDown(block);
 
     mixer.mixWetSamples(block);
 }
@@ -113,7 +116,7 @@ template <typename SampleType>
 SampleType ProcessWrapper<SampleType>::getLatencySamples() const noexcept
 {
     // latency of oversampling
-    return overSample[curOS]->getLatencyInSamples();
+    return oversampler[curOS]->getLatencyInSamples();
 }
 
 template <typename SampleType>
@@ -122,9 +125,10 @@ void ProcessWrapper<SampleType>::setOversampling()
     curOS = (int)osPtr->getIndex();
     if (curOS != prevOS)
     {
-        overSamplingFactor = 1 << curOS;
+        oversamplingFactor = 1 << curOS;
         prevOS = curOS;
         svf.reset(static_cast<SampleType>(0.0));
+        svf.sampleRate = setup.sampleRate * oversamplingFactor;
         mixer.reset();
         mixer.setWetLatency(getLatencySamples());
         output.reset();
@@ -134,11 +138,13 @@ void ProcessWrapper<SampleType>::setOversampling()
 template <typename SampleType>
 void ProcessWrapper<SampleType>::update()
 {
-    spec.sampleRate = audioProcessor.getSampleRate() * overSamplingFactor;
-    spec.maximumBlockSize = audioProcessor.getBlockSize();
-    spec.numChannels = audioProcessor.getTotalNumInputChannels();
+    setup.sampleRate = audioProcessor.getSampleRate();
+    setup.maximumBlockSize = audioProcessor.getBlockSize();
+    setup.numChannels = audioProcessor.getTotalNumInputChannels();
 
     setOversampling();
+
+    audioProcessor.setBypassParameter(bypassPtr);
 
     mixer.setWetMixProportion(mixPtr->get() * 0.01f);
 

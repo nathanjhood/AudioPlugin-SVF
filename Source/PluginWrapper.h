@@ -16,7 +16,7 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "Modules/SVF.h"
 
-class AudioPluginAudioProcessor;
+class AudioPluginSVFAudioProcessor;
 
 template <typename SampleType>
 class ProcessWrapper
@@ -26,11 +26,11 @@ public:
     using Type = juce::dsp::StateVariableTPTFilterType;
     //==========================================================================
     /** Constructor. */
-    ProcessWrapper(AudioPluginAudioProcessor& p, APVTS& apvts);
+    ProcessWrapper(AudioPluginSVFAudioProcessor& p, APVTS& apvts, juce::dsp::ProcessSpec& spec);
 
     //==========================================================================
     /** Initialises the processor. */
-    void prepare();
+    void prepare(juce::dsp::ProcessSpec& spec);
 
     /** Resets the internal state variables of the processor. */
     void reset();
@@ -48,19 +48,19 @@ private:
     //==========================================================================
     // This reference is provided as a quick way for the wrapper to
     // access the processor object that created it.
-    AudioPluginAudioProcessor& audioProcessor;
+    AudioPluginSVFAudioProcessor& audioProcessor;
     APVTS& state;
+    juce::dsp::ProcessSpec& setup;
 
     //==========================================================================
     /** Sets the oversampling factor. */
     void setOversampling();
 
     //==========================================================================
-    std::unique_ptr<juce::dsp::Oversampling<SampleType>> overSample[5];
+    std::unique_ptr<juce::dsp::Oversampling<SampleType>> oversampler[5];
 
     //==========================================================================
     /** Instantiate objects. */
-    juce::dsp::ProcessSpec spec;
     juce::dsp::DryWetMixer<SampleType> mixer;
     StateVariableTPTFilter<SampleType> svf;
     juce::dsp::Gain<SampleType> output;
@@ -73,10 +73,11 @@ private:
     juce::AudioParameterChoice* osPtr { nullptr };
     juce::AudioParameterFloat* outputPtr { nullptr };
     juce::AudioParameterFloat* mixPtr { nullptr };
+    juce::AudioParameterBool* bypassPtr{ nullptr };
 
     //==========================================================================
     /** Init variables. */
-    int curOS = 0, prevOS = 0, overSamplingFactor = 1;
+    int curOS = 0, prevOS = 0, oversamplingFactor = 1;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ProcessWrapper)
 };

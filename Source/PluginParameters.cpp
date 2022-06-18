@@ -11,7 +11,7 @@
 #include "PluginParameters.h"
 #include "PluginProcessor.h"
 
-Parameters::Parameters(AudioPluginAudioProcessor& p, APVTS& apvts)
+Parameters::Parameters(AudioPluginSVFAudioProcessor& p, APVTS& apvts)
     :
     audioProcessor(p),
     state(apvts)
